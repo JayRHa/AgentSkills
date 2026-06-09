@@ -1,0 +1,82 @@
+# Reusable workflow template.
+# Place at: .github/workflows/<name>.yml in the SAME or a shared repo.
+# Call it from another workflow with a job-level `uses:` (see bottom).
+#
+# Replace placeholders marked <...>. Delete blocks you do not need.
+
+name: <reusable-build-and-test>
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        description: "Node.js version to use"
+        required: false
+        default: "20"
+        type: string
+      run-deploy:
+        description: "Whether to run the deploy step"
+        required: false
+        default: false
+        type: boolean
+    secrets:
+      DEPLOY_TOKEN:
+        description: "Token used by the deploy step"
+        required: false
+    outputs:
+      artifact-name:
+        description: "Name of the uploaded build artifact"
+        value: ${{ jobs.build.outputs.artifact-name }}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      artifact-name: dist
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  deploy:
+    if: ${{ inputs.run-deploy }}
+    needs: [build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.artifact-name }}
+          path: dist/
+      - run: ./scripts/deploy.sh
+        env:
+          DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+
+# ---------------------------------------------------------------------------
+# CALLER (e.g. .github/workflows/ci.yml). Secrets are NOT inherited unless you
+# pass them explicitly or use `secrets: inherit`.
+#
+# jobs:
+#   ci:
+#     uses: <owner>/<repo>/.github/workflows/<name>.yml@<sha-or-tag>
+#     with:
+#       node-version: "20"
+#       run-deploy: true
+#     secrets:
+#       DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+#     # or:  secrets: inherit
+# ---------------------------------------------------------------------------

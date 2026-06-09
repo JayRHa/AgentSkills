@@ -1,0 +1,49 @@
+# .dockerignore — keep the build context small and keep secrets OUT of images.
+# Copy to `.dockerignore` next to your Dockerfile and trim to taste.
+
+# Version control & CI
+.git
+.gitignore
+.github
+.gitlab-ci.yml
+
+# Docker / compose meta (avoid recursive context bloat)
+Dockerfile*
+.dockerignore
+docker-compose*.yml
+
+# Secrets & local config  (NEVER ship these)
+.env
+.env.*
+*.pem
+*.key
+*.p12
+secrets/
+.npmrc
+.netrc
+
+# Dependency / build output (rebuilt inside the image)
+node_modules
+dist
+build
+target
+__pycache__
+*.pyc
+.venv
+venv
+vendor
+
+# Editor / OS cruft
+.idea
+.vscode
+.DS_Store
+*.swp
+
+# Tests, docs, coverage (usually not needed at runtime)
+coverage
+.pytest_cache
+.mypy_cache
+*.md
+!README.md
+tests
+__tests__

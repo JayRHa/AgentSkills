@@ -1,0 +1,201 @@
+openapi: 3.1.0
+info:
+  title: Acme API
+  version: "1.0.0"
+  description: >-
+    REST API for managing Acme resources. All requests require a Bearer token.
+  contact:
+    name: API Support
+    email: api@acme.com
+  license:
+    name: MIT
+servers:
+  - url: https://api.acme.com/v1
+    description: Production
+  - url: https://sandbox.acme.com/v1
+    description: Sandbox
+tags:
+  - name: Users
+    description: User accounts.
+security:
+  - bearerAuth: []
+paths:
+  /users:
+    get:
+      operationId: listUsers
+      summary: List users
+      description: Returns a paginated list of users.
+      tags: [Users]
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+      responses:
+        '200':
+          description: A page of users.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserList'
+        '401':
+          $ref: '#/components/responses/Unauthenticated'
+    post:
+      operationId: createUser
+      summary: Create a user
+      description: Creates a new user account.
+      tags: [Users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUser'
+            examples:
+              minimal:
+                summary: Minimal payload
+                value:
+                  email: ada@example.com
+      responses:
+        '201':
+          description: User created.
+          headers:
+            Location:
+              schema: { type: string }
+              description: URL of the created user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /users/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    get:
+      operationId: getUser
+      summary: Retrieve a user
+      description: Returns a single user by id.
+      tags: [Users]
+      responses:
+        '200':
+          description: The user.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    UserId:
+      name: userId
+      in: path
+      required: true
+      description: Identifier of the user.
+      schema:
+        type: string
+        pattern: '^usr_[a-zA-Z0-9]+$'
+    Limit:
+      name: limit
+      in: query
+      required: false
+      description: Max items per page.
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: Opaque cursor for the next page.
+      schema:
+        type: string
+  responses:
+    Unauthenticated:
+      description: Missing or invalid credentials.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    ValidationError:
+      description: The request body failed validation.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Resource not found.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Conflict:
+      description: The resource conflicts with an existing one.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+  schemas:
+    User:
+      type: object
+      required: [id, email, role, createdAt]
+      properties:
+        id:
+          type: string
+          examples: ['usr_8f2c1a']
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [admin, member, viewer]
+          default: member
+        createdAt:
+          type: string
+          format: date-time
+      additionalProperties: false
+    CreateUser:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [admin, member, viewer]
+          default: member
+      additionalProperties: false
+    UserList:
+      type: object
+      required: [data, hasMore]
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/User' }
+        hasMore:
+          type: boolean
+        nextCursor:
+          type: [string, 'null']
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              examples: ['validation_error']
+            message:
+              type: string
+            details:
+              type: array
+              items: { type: object }
+            request_id:
+              type: string

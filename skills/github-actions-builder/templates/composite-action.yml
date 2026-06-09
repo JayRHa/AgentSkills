@@ -1,0 +1,57 @@
+# Composite action template.
+# Place at: .github/actions/<action-name>/action.yml
+# Use within any job step:  - uses: ./.github/actions/<action-name>
+#
+# Composite actions bundle a sequence of STEPS (not whole jobs) for reuse
+# within a repo. They take `inputs` but have no native `secrets` block — pass
+# secrets in from the calling workflow via `with:` (treat as sensitive) or env.
+#
+# Replace placeholders marked <...>.
+
+name: "<Setup and Install>"
+description: "Checkout-independent setup: configure runtime and install deps with caching."
+
+inputs:
+  node-version:
+    description: "Node.js version"
+    required: false
+    default: "20"
+  install-command:
+    description: "Dependency install command"
+    required: false
+    default: "npm ci"
+
+outputs:
+  cache-hit:
+    description: "Whether the dependency cache was restored"
+    value: ${{ steps.setup.outputs.cache-hit }}
+
+runs:
+  using: "composite"
+  steps:
+    - id: setup
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      shell: bash
+      run: ${{ inputs.install-command }}
+
+    - name: Show versions
+      shell: bash
+      run: |
+        node --version
+        npm --version
+
+# ---------------------------------------------------------------------------
+# USAGE in a workflow job:
+#
+# steps:
+#   - uses: actions/checkout@v4        # composite actions usually need checkout first
+#   - uses: ./.github/actions/<action-name>
+#     with:
+#       node-version: "20"
+#   - run: npm test
+# ---------------------------------------------------------------------------

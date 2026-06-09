@@ -1,0 +1,104 @@
+# Production Deployment template. Replace ALL <PLACEHOLDER> values.
+# Pair with templates/service.yaml. Validate with scripts/validate_manifest.py.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: <APP-NAME>
+  labels:
+    app.kubernetes.io/name: <APP-NAME>
+    app.kubernetes.io/instance: <APP-NAME>-prod
+    app.kubernetes.io/version: "<VERSION>"
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: <SYSTEM-NAME>
+    app.kubernetes.io/managed-by: kustomize
+spec:
+  replicas: 2                       # omit if an HPA manages this Deployment
+  revisionHistoryLimit: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0             # zero-downtime: never drop below desired
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: <APP-NAME>
+      app.kubernetes.io/instance: <APP-NAME>-prod
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: <APP-NAME>
+        app.kubernetes.io/instance: <APP-NAME>-prod
+        app.kubernetes.io/version: "<VERSION>"
+    spec:
+      serviceAccountName: <APP-NAME>
+      automountServiceAccountToken: false
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        fsGroup: 10001
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: <APP-NAME>
+      containers:
+        - name: <APP-NAME>
+          image: <REGISTRY>/<APP-NAME>:<VERSION>   # never :latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: <CONTAINER-PORT>
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: <APP-NAME>-config
+            - secretRef:
+                name: <APP-NAME>-secrets
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              memory: "128Mi"        # == request; CPU limit omitted to avoid throttling
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            failureThreshold: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /healthz          # cheap, dependency-free
+              port: http
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sleep", "5"]   # drain in-flight requests before SIGTERM
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 10001
+            runAsGroup: 10001
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}

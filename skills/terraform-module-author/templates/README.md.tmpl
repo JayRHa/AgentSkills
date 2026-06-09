@@ -1,0 +1,64 @@
+# terraform-<PROVIDER>-<NAME>
+
+> One-line description of what this module provisions and the single responsibility it owns.
+
+## Usage
+
+```hcl
+module "<name>" {
+  source  = "<registry or git source>?ref=v0.1.0"
+
+  name        = "example"
+  environment = "dev"
+
+  tags = {
+    Owner = "platform-team"
+  }
+}
+```
+
+## Requirements
+
+| Name | Version |
+|------|---------|
+| terraform | >= 1.5.0 |
+| <provider> | ~> X.0 |
+
+## Examples
+
+- [`examples/basic`](./examples/basic) — minimal configuration.
+- [`examples/complete`](./examples/complete) — all features enabled.
+
+<!--
+Generate the Inputs/Outputs tables automatically:
+
+  terraform-docs markdown table --output-file README.md --output-mode inject .
+
+Keep the markers below so terraform-docs knows where to inject.
+-->
+
+<!-- BEGIN_TF_DOCS -->
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| name | Resource base name (lowercase, hyphen-separated). | `string` | n/a | yes |
+| environment | Deployment environment (dev/staging/prod). | `string` | n/a | yes |
+| tags | Tags applied to all resources; merged over module defaults. | `map(string)` | `{}` | no |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| id | Identifier of the primary created resource. |
+| arn | ARN of the primary created resource. |
+<!-- END_TF_DOCS -->
+
+## State & lifecycle notes
+
+- This is a reusable child module: it declares `required_providers` but configures **no** provider or backend. Configure those in your root module.
+- Stateful resources use `for_each` with stable keys; renames ship with `moved {}` blocks.
+
+## License
+
+MIT

@@ -1,0 +1,61 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://api.example.com/schemas/create-user.json",
+  "title": "CreateUserRequest",
+  "description": "Request/response schemas suitable for OpenAPI 3.1 components.schemas.",
+  "$defs": {
+    "Email": {
+      "type": "string",
+      "format": "email",
+      "maxLength": 254,
+      "description": "RFC 5321 email address."
+    },
+    "Role": {
+      "type": "string",
+      "enum": ["viewer", "editor", "admin"]
+    },
+    "CreateUserRequest": {
+      "type": "object",
+      "required": ["email", "role"],
+      "additionalProperties": false,
+      "properties": {
+        "email": { "$ref": "#/$defs/Email" },
+        "displayName": { "type": "string", "minLength": 1, "maxLength": 80 },
+        "role": { "$ref": "#/$defs/Role" },
+        "sendInvite": { "type": "boolean", "default": true }
+      }
+    },
+    "User": {
+      "type": "object",
+      "required": ["id", "email", "role", "createdAt"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "format": "uuid", "readOnly": true },
+        "email": { "$ref": "#/$defs/Email" },
+        "displayName": { "type": ["string", "null"] },
+        "role": { "$ref": "#/$defs/Role" },
+        "createdAt": { "type": "string", "format": "date-time", "readOnly": true }
+      }
+    },
+    "ValidationError": {
+      "type": "object",
+      "required": ["error", "details"],
+      "properties": {
+        "error": { "const": "validation_failed" },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["field", "code", "message"],
+            "properties": {
+              "field": { "type": "string" },
+              "code": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$ref": "#/$defs/CreateUserRequest"
+}

@@ -1,0 +1,236 @@
+openapi: 3.1.0
+info:
+  title: Example API
+  version: 1.0.0
+  description: >-
+    Starter spec demonstrating consistent pagination, RFC 9457 errors,
+    idempotency, and optimistic concurrency. Replace Example/Order with
+    your own domain.
+  license:
+    name: MIT
+servers:
+  - url: https://api.example.com/v1
+tags:
+  - name: Orders
+paths:
+  /orders:
+    get:
+      tags: [Orders]
+      summary: List orders
+      operationId: listOrders
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Cursor'
+        - name: status
+          in: query
+          description: Filter by order status.
+          schema:
+            type: string
+            enum: [pending, paid, cancelled]
+        - name: sort
+          in: query
+          description: Sort field; prefix with '-' for descending.
+          schema:
+            type: string
+            enum: [createdAt, -createdAt]
+            default: -createdAt
+      responses:
+        '200':
+          description: A page of orders.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderPage'
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/Problem' }
+    post:
+      tags: [Orders]
+      summary: Create an order
+      operationId: createOrder
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OrderCreate'
+      responses:
+        '201':
+          description: Order created.
+          headers:
+            Location:
+              description: URL of the created order.
+              schema: { type: string, format: uri }
+            ETag:
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '409': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+  /orders/{orderId}:
+    parameters:
+      - $ref: '#/components/parameters/OrderId'
+    get:
+      tags: [Orders]
+      summary: Get an order
+      operationId: getOrder
+      responses:
+        '200':
+          description: The order.
+          headers:
+            ETag:
+              schema: { type: string }
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404': { $ref: '#/components/responses/Problem' }
+    patch:
+      tags: [Orders]
+      summary: Update an order
+      operationId: updateOrder
+      parameters:
+        - name: If-Match
+          in: header
+          required: true
+          description: ETag for optimistic concurrency.
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/merge-patch+json:
+            schema:
+              $ref: '#/components/schemas/OrderUpdate'
+      responses:
+        '200':
+          description: Updated order.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '412': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+    delete:
+      tags: [Orders]
+      summary: Delete an order
+      operationId: deleteOrder
+      responses:
+        '204':
+          description: Deleted.
+        '404': { $ref: '#/components/responses/Problem' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    OrderId:
+      name: orderId
+      in: path
+      required: true
+      schema: { type: string }
+    Limit:
+      name: limit
+      in: query
+      description: Max items per page (default 50, max 200).
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
+    Cursor:
+      name: cursor
+      in: query
+      description: Opaque cursor from a previous page's nextCursor.
+      schema: { type: string }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: Client-generated unique key to safely retry creation.
+      schema: { type: string, format: uuid }
+  responses:
+    Problem:
+      description: An error occurred (RFC 9457).
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    Problem:
+      type: object
+      properties:
+        type: { type: string, format: uri, default: 'about:blank' }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string, format: uri }
+        code: { type: string }
+        traceId: { type: string }
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              field: { type: string }
+              code: { type: string }
+              detail: { type: string }
+      required: [title, status]
+    Money:
+      type: object
+      properties:
+        currency: { type: string, description: ISO 4217 code, example: USD }
+        amountMinor: { type: integer, description: Amount in minor units (cents) }
+      required: [currency, amountMinor]
+    Order:
+      type: object
+      properties:
+        id: { type: string, readOnly: true }
+        status:
+          type: string
+          enum: [pending, paid, cancelled]
+        total: { $ref: '#/components/schemas/Money' }
+        createdAt: { type: string, format: date-time, readOnly: true }
+        updatedAt: { type: string, format: date-time, readOnly: true }
+      required: [id, status, total, createdAt]
+    OrderCreate:
+      type: object
+      properties:
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            properties:
+              sku: { type: string }
+              quantity: { type: integer, minimum: 1 }
+            required: [sku, quantity]
+      required: [items]
+      additionalProperties: false
+    OrderUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [paid, cancelled]
+      additionalProperties: false
+    OrderPage:
+      type: object
+      properties:
+        data:
+          type: array
+          items: { $ref: '#/components/schemas/Order' }
+        page:
+          type: object
+          properties:
+            nextCursor: { type: string, nullable: true }
+            hasMore: { type: boolean }
+          required: [hasMore]
+      required: [data, page]
+security:
+  - bearerAuth: []

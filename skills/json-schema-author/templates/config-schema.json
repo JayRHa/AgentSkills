@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/app-config.json",
+  "title": "Application Config",
+  "description": "Strict configuration contract. Unknown keys are rejected.",
+  "type": "object",
+  "required": ["service", "server"],
+  "additionalProperties": false,
+  "properties": {
+    "service": {
+      "type": "string",
+      "title": "Service name",
+      "description": "Lowercase slug, 3-32 chars.",
+      "pattern": "^[a-z][a-z0-9-]{2,31}$",
+      "examples": ["billing-api"]
+    },
+    "environment": {
+      "title": "Deployment environment",
+      "enum": ["dev", "staging", "prod"],
+      "default": "dev"
+    },
+    "server": {
+      "type": "object",
+      "required": ["port"],
+      "additionalProperties": false,
+      "properties": {
+        "host": { "type": "string", "format": "hostname", "default": "0.0.0.0" },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "TCP port to bind."
+        },
+        "tls": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean", "default": false },
+            "certFile": { "type": "string", "minLength": 1 },
+            "keyFile": { "type": "string", "minLength": 1 }
+          },
+          "if": { "properties": { "enabled": { "const": true } } },
+          "then": { "required": ["certFile", "keyFile"] }
+        }
+      }
+    },
+    "logging": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "level": { "enum": ["debug", "info", "warn", "error"], "default": "info" },
+        "format": { "enum": ["json", "text"], "default": "json" }
+      }
+    },
+    "timeoutSeconds": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 600,
+      "default": 30,
+      "description": "Request timeout in seconds."
+    },
+    "allowedOrigins": {
+      "type": "array",
+      "items": { "type": "string", "format": "uri" },
+      "uniqueItems": true,
+      "default": []
+    }
+  }
+}

@@ -1,0 +1,43 @@
+# Service template. The selector MUST match the workload's pod template labels.
+apiVersion: v1
+kind: Service
+metadata:
+  name: <APP-NAME>
+  labels:
+    app.kubernetes.io/name: <APP-NAME>
+    app.kubernetes.io/instance: <APP-NAME>-prod
+spec:
+  type: ClusterIP            # use LoadBalancer/NodePort only for external exposure
+  selector:
+    app.kubernetes.io/name: <APP-NAME>
+    app.kubernetes.io/instance: <APP-NAME>-prod
+  ports:
+    - name: http
+      port: 80              # service port (what clients call)
+      targetPort: http      # references the container port name
+      protocol: TCP
+---
+# Optional Ingress (networking.k8s.io/v1). Remove if not exposing over HTTP.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: <APP-NAME>
+  annotations:
+    # ingress-controller-specific annotations go here
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: ["<HOST>"]
+      secretName: <APP-NAME>-tls
+  rules:
+    - host: <HOST>
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: <APP-NAME>
+                port:
+                  name: http

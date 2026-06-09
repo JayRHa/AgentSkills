@@ -1,0 +1,9 @@
+# Checkout API outage - 2026-06-08 (sample input for timeline_builder.py)
+2026-06-08T14:02:00Z | deploy-bot | start    | Deploy v812 shipped to checkout-service
+2026-06-08T14:06:00Z | datadog    |          | DB CPU begins climbing past 70%
+2026-06-08T14:10:00Z | datadog    | detect   | Alert: API 5xx rate > 5% (fired late; threshold tuned for old traffic)
+2026-06-08T14:12:00Z | priya      | ack      | On-call acknowledged page, opened war room
+2026-06-08T14:18:00Z | priya      |          | Identified v812 as suspect via deploy log correlation
+2026-06-08T14:24:00Z | priya      | mitigate | Rolled back to v811 (manual; no auto-rollback)
+2026-06-08T14:31:00Z | datadog    |          | 5xx rate falling
+2026-06-08T14:53:00Z | priya      | resolve  | Error rate at baseline, incident closed

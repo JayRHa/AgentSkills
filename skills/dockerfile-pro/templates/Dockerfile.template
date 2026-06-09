@@ -1,0 +1,53 @@
+# syntax=docker/dockerfile:1.7
+# ============================================================================
+# Language-agnostic multi-stage Dockerfile template.
+# Replace <PLACEHOLDERS> and delete sections that don't apply.
+# Read the inline notes; each maps to a rule in references/best-practices.md.
+# ============================================================================
+
+# --- Stage 1: builder -------------------------------------------------------
+# Pin base by tag AND digest:  <BUILD_IMAGE>:<TAG>@sha256:<DIGEST>
+FROM <BUILD_IMAGE>:<TAG> AS builder
+
+WORKDIR /src
+
+# 1) Dependency manifests FIRST (least volatile -> best cache hits).
+COPY <DEP_MANIFESTS> ./
+# 2) Install deps with a BuildKit cache mount + lockfile-exact install.
+RUN --mount=type=cache,target=<PKG_CACHE_DIR> \
+    <INSTALL_DEPS_COMMAND>
+
+# 3) Now the source (most volatile).
+COPY . .
+
+# 4) Build / compile. Strip symbols where possible for smaller artifacts.
+RUN <BUILD_COMMAND>
+
+# --- Stage 2: runtime -------------------------------------------------------
+# Pick the smallest base that runs your artifact (distroless/scratch/-slim).
+FROM <RUNTIME_IMAGE>:<TAG> AS runtime
+
+# Non-root user with a fixed NUMERIC uid/gid (skip if base is distroless:nonroot).
+RUN groupadd --system --gid 10001 app \
+    && useradd  --system --uid 10001 --gid app --home /home/app --shell /usr/sbin/nologin app
+
+WORKDIR /app
+
+# Copy ONLY runtime artifacts from the builder, setting ownership inline.
+COPY --from=builder --chown=10001:10001 <ARTIFACT_PATHS> ./
+
+USER 10001:10001
+EXPOSE <PORT>
+ENV <KEY>=<VALUE>
+
+LABEL org.opencontainers.image.source="<REPO_URL>" \
+      org.opencontainers.image.licenses="<LICENSE>" \
+      org.opencontainers.image.description="<DESCRIPTION>"
+
+# Prefer a built-in healthcheck subcommand over installing curl.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD <HEALTHCHECK_COMMAND_EXEC_FORM>
+
+# Exec form ONLY so PID 1 receives SIGTERM.
+ENTRYPOINT ["<ENTRYPOINT_BINARY>"]
+CMD ["<DEFAULT_ARGS>"]

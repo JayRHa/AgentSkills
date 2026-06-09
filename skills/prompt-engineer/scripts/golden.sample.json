@@ -1,0 +1,7 @@
+[
+  {"input": "My card was charged twice this month.", "expected": "{\"label\": \"billing\"}", "tags": ["billing"]},
+  {"input": "The app crashes on launch after the update.", "expected": "{\"label\": \"technical\"}", "tags": ["technical"]},
+  {"input": "How do I change the email on my profile?", "expected": "{\"label\": \"account\"}", "tags": ["account"]},
+  {"input": "Just wanted to say thanks, great product!", "expected": "{\"label\": \"other\"}", "tags": ["other", "edge"]},
+  {"input": "I was charged but the feature still doesn't work.", "expected": "{\"label\": \"billing\"}", "tags": ["billing", "edge", "ambiguous"]}
+]

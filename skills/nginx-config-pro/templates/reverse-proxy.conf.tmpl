@@ -1,0 +1,175 @@
+# =============================================================================
+# nginx reverse-proxy site config TEMPLATE
+# Fill in: <DOMAIN>, <UPSTREAM_HOST>, <UPSTREAM_PORT>, cert paths.
+# Place in /etc/nginx/sites-available/<DOMAIN>.conf and symlink to sites-enabled/,
+# or directly in /etc/nginx/conf.d/<DOMAIN>.conf.
+# Validate with: nginx -t && nginx -s reload
+# =============================================================================
+
+# ---- http {} context directives (put these in /etc/nginx/nginx.conf or a
+#      conf.d file loaded at http scope; they MUST NOT live inside server {}) ----
+#
+# upstream backend {
+#     # keepalive requires proxy_http_version 1.1 + Connection "" in the proxy block
+#     server <UPSTREAM_HOST>:<UPSTREAM_PORT> max_fails=3 fail_timeout=15s;
+#     keepalive 32;
+# }
+#
+# limit_req_zone  $binary_remote_addr zone=req_per_ip:10m rate=10r/s;
+# limit_conn_zone $binary_remote_addr zone=conn_per_ip:10m;
+#
+# proxy_cache_path /var/cache/nginx/<DOMAIN> levels=1:2
+#     keys_zone=site_cache:10m max_size=1g inactive=60m use_temp_path=off;
+#
+# # websocket upgrade map
+# map $http_upgrade $connection_upgrade {
+#     default upgrade;
+#     ''      close;
+# }
+#
+# # JSON access log for log pipelines
+# log_format json_combined escape=json '{'
+#   '"time":"$time_iso8601",'
+#   '"remote_addr":"$remote_addr",'
+#   '"method":"$request_method",'
+#   '"uri":"$request_uri",'
+#   '"status":$status,'
+#   '"bytes":$body_bytes_sent,'
+#   '"referer":"$http_referer",'
+#   '"ua":"$http_user_agent",'
+#   '"rt":$request_time,'
+#   '"upstream_rt":"$upstream_response_time",'
+#   '"cache":"$upstream_cache_status"'
+# '}';
+
+# ---- HTTP -> HTTPS redirect (and ACME challenge passthrough) ----
+server {
+    listen 80;
+    listen [::]:80;
+    server_name <DOMAIN>;
+
+    # Let's Encrypt / certbot webroot challenge stays on HTTP
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# ---- Drop requests for unknown hostnames (no leaking the default site) ----
+server {
+    listen 443 ssl default_server;
+    listen [::]:443 ssl default_server;
+    http2 on;
+    server_name _;
+    ssl_certificate     /etc/nginx/ssl/dummy.crt;
+    ssl_certificate_key /etc/nginx/ssl/dummy.key;
+    return 444;  # close connection without response
+}
+
+# ---- Main TLS server ----
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
+    server_name <DOMAIN>;
+
+    access_log /var/log/nginx/<DOMAIN>.access.log json_combined;
+    error_log  /var/log/nginx/<DOMAIN>.error.log warn;
+
+    server_tokens off;
+    client_max_body_size 25m;   # raise for file uploads
+
+    # ---------------- TLS ----------------
+    ssl_certificate     /etc/letsencrypt/live/<DOMAIN>/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/<DOMAIN>/privkey.pem;
+    ssl_trusted_certificate /etc/letsencrypt/live/<DOMAIN>/chain.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;            # let TLS1.3 clients pick
+    ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;
+    ssl_session_timeout 1d;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_tickets off;
+
+    # OCSP stapling
+    ssl_stapling on;
+    ssl_stapling_verify on;
+    resolver 1.1.1.1 8.8.8.8 valid=300s;
+    resolver_timeout 5s;
+
+    # ---------------- Security headers ----------------
+    add_header Strict-Transport-Security "max-age=63072000; includeSubDomains" always;
+    add_header X-Content-Type-Options    "nosniff" always;
+    add_header X-Frame-Options           "SAMEORIGIN" always;
+    add_header Referrer-Policy           "strict-origin-when-cross-origin" always;
+    add_header Content-Security-Policy    "default-src 'self'" always;
+
+    # ---------------- Compression ----------------
+    gzip on;
+    gzip_vary on;
+    gzip_comp_level 5;
+    gzip_min_length 256;
+    gzip_proxied any;
+    gzip_types text/plain text/css application/json application/javascript
+               text/xml application/xml application/xml+rss text/javascript
+               image/svg+xml application/wasm;
+    # brotli on; brotli_comp_level 5; brotli_types ...;   # if ngx_brotli is built in
+
+    # ---------------- Rate limiting (zones defined in http{}) ----------------
+    limit_req  zone=req_per_ip burst=20 nodelay;
+    limit_conn conn_per_ip 20;
+    limit_req_status 429;
+    limit_conn_status 429;
+
+    # ---------------- Static assets (served directly, long-cached) ----------------
+    location /static/ {
+        alias /var/www/<DOMAIN>/static/;
+        expires 30d;
+        add_header Cache-Control "public, immutable" always;
+        access_log off;
+    }
+
+    # ---------------- Cached API/GET proxy ----------------
+    location /api/public/ {
+        proxy_cache site_cache;
+        proxy_cache_valid 200 301 302 10m;
+        proxy_cache_valid 404 1m;
+        proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+        proxy_cache_lock on;
+        proxy_cache_bypass $http_authorization $cookie_session;
+        proxy_no_cache     $http_authorization $cookie_session;
+        add_header X-Cache-Status $upstream_cache_status always;
+
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Connection        "";
+        proxy_pass http://backend;
+    }
+
+    # ---------------- Default proxy (incl. websockets) ----------------
+    location / {
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-Host  $host;
+
+        # websocket support
+        proxy_set_header Upgrade    $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+
+        proxy_connect_timeout 5s;
+        proxy_send_timeout    60s;
+        proxy_read_timeout    60s;
+        proxy_buffering on;
+
+        proxy_pass http://backend;
+    }
+}

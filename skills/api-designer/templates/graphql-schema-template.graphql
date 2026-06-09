@@ -1,0 +1,113 @@
+"""
+Starter GraphQL schema demonstrating Relay-style connections, input objects,
+mutation payloads with typed user errors, and custom scalars.
+Replace Order with your own domain.
+"""
+
+scalar DateTime
+scalar Decimal
+
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+type Query {
+  """Fetch a single order by its global ID."""
+  order(id: ID!): Order
+
+  """List orders with cursor pagination. Enforce a max of 100 per page."""
+  orders(
+    first: Int = 50
+    after: String
+    status: OrderStatus
+  ): OrderConnection!
+}
+
+type Mutation {
+  """Create an order. Returns the created order or typed user errors."""
+  createOrder(input: CreateOrderInput!): CreateOrderPayload!
+
+  """Cancel an order. Idempotent: cancelling a cancelled order succeeds."""
+  cancelOrder(input: CancelOrderInput!): CancelOrderPayload!
+}
+
+type Order {
+  id: ID!
+  status: OrderStatus!
+  total: Money!
+  createdAt: DateTime!
+  updatedAt: DateTime
+  items: [OrderItem!]!
+}
+
+type OrderItem {
+  sku: String!
+  quantity: Int!
+}
+
+type Money {
+  currency: String!
+  amountMinor: Int!
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+# ----- Pagination (Relay Connection spec) -----
+type OrderConnection {
+  edges: [OrderEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int
+}
+
+type OrderEdge {
+  node: Order!
+  cursor: String!
+}
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: String
+  endCursor: String
+}
+
+# ----- Inputs -----
+input CreateOrderInput {
+  items: [OrderItemInput!]!
+  """Client-supplied idempotency key to make retries safe."""
+  clientMutationId: String
+}
+
+input OrderItemInput {
+  sku: String!
+  quantity: Int!
+}
+
+input CancelOrderInput {
+  id: ID!
+  clientMutationId: String
+}
+
+# ----- Payloads with typed user errors -----
+type CreateOrderPayload {
+  order: Order
+  userErrors: [UserError!]!
+}
+
+type CancelOrderPayload {
+  order: Order
+  userErrors: [UserError!]!
+}
+
+type UserError {
+  """Path to the offending input field, e.g. [\"items\", \"0\", \"quantity\"]."""
+  field: [String!]
+  """Stable machine-readable error code."""
+  code: String!
+  message: String!
+}
