@@ -4,14 +4,14 @@ Thanks for helping grow the largest open library of Agent Skills! Contributions 
 
 ## What is a skill?
 
-A skill is a folder under [`skills/`](./skills) containing a `SKILL.md` file plus optional supporting files (references, scripts, examples, templates). Claude (and other compatible agents like Codex, Gemini CLI, and Cursor) automatically discover a skill from its `description` and load the full body only when it is relevant — so skills are cheap until used.
+A skill is a top-level folder in the repo root containing a `SKILL.md` file plus optional supporting files (references, scripts, examples, templates). Claude (and other compatible agents like Codex, Gemini CLI, and Cursor) automatically discover a skill from its `description` and load the full body only when it is relevant — so skills are cheap until used.
 
 Skills follow the open [Agent Skills standard](https://agentskills.io).
 
 ## Skill anatomy
 
 ```text
-skills/my-skill/
+my-skill/
 ├── SKILL.md            # Required. Frontmatter + instructions.
 ├── references/         # Optional. Deep reference docs, checklists, tables.
 │   └── guide.md
@@ -48,7 +48,7 @@ The `description` is the single most important field — it is the only text the
 ## How to contribute
 
 1. **Got an idea?** [Open an issue](../../issues/new) describing the skill you'd like to see.
-2. **Got a skill?** Copy [`skills/0-template`](./skills/0-template), fill it in, and open a pull request.
+2. **Got a skill?** Copy [`0-template`](./0-template) into a new top-level folder, fill it in, and open a pull request.
 3. Run `python3 scripts/validate_skills.py` before submitting — it checks that every skill has valid frontmatter and a matching folder name.
 
 ## Quality checklist

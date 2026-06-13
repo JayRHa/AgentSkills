@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Validate every skill in the AgentSkills library.
 
-Checks, for each folder under skills/:
+Skills live as top-level folders in the repo root (each folder that contains a
+SKILL.md is treated as a skill). Checks, for each skill:
   - a SKILL.md exists
   - it has YAML frontmatter delimited by --- markers
   - frontmatter contains `name` and `description`
@@ -19,7 +20,8 @@ import re
 import sys
 from pathlib import Path
 
-SKILLS_DIR = Path(__file__).resolve().parent.parent / "skills"
+ROOT = Path(__file__).resolve().parent.parent
+NON_SKILL_DIRS = {"scripts", ".github", ".git"}
 KEBAB = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 
 
@@ -41,20 +43,25 @@ def parse_frontmatter(text: str) -> dict[str, str] | None:
     return fm
 
 
+def skill_dirs() -> list[Path]:
+    return sorted(
+        p for p in ROOT.iterdir()
+        if p.is_dir() and p.name not in NON_SKILL_DIRS and (p / "SKILL.md").is_file()
+    )
+
+
 def main() -> int:
-    if not SKILLS_DIR.is_dir():
-        print(f"error: {SKILLS_DIR} not found", file=sys.stderr)
+    dirs = skill_dirs()
+    if not dirs:
+        print(f"error: no skills found in {ROOT}", file=sys.stderr)
         return 1
 
     errors: list[str] = []
     count = 0
-    for folder in sorted(p for p in SKILLS_DIR.iterdir() if p.is_dir()):
+    for folder in dirs:
         count += 1
         name = folder.name
         skill_md = folder / "SKILL.md"
-        if not skill_md.is_file():
-            errors.append(f"{name}: missing SKILL.md")
-            continue
         fm = parse_frontmatter(skill_md.read_text(encoding="utf-8"))
         if fm is None:
             errors.append(f"{name}: missing or malformed YAML frontmatter")

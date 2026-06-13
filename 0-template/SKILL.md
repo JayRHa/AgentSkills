@@ -6,7 +6,7 @@ license: MIT
 
 # Skill Template
 
-> Copy this folder to `skills/<your-skill-name>/`, rename it, and replace this content. Delete this blockquote when done.
+> Copy this folder to a new top-level `<your-skill-name>/` folder in the repo root, rename it, and replace this content. Delete this blockquote when done.
 
 ## Overview
 
