@@ -1,33 +1,34 @@
+<!-- jr-brand:start -->
 <div align="center">
+  <a href="https://jannikreinhard.com/">
+    <img src="https://raw.githubusercontent.com/JayRHa/.github/main/assets/readme/collection.svg" alt="Jannik Reinhard — AI, Cloud and Endpoint Management" width="100%">
+  </a>
+  <h1>Agent Skills</h1>
+  <p><strong>The largest community-driven library of Agent Skills (SKILL.md + scripts/references/examples) for Claude, Codex, Gemini CLI, Cursor and friends.</strong></p>
+  <p>
+  <a href="https://jannikreinhard.com/"><img src="https://img.shields.io/badge/Website-0A5FC0?style=flat-square&amp;logo=wordpress&amp;logoColor=white" alt="Website"></a>
+  <a href="https://github.com/JayRHa"><img src="https://img.shields.io/badge/GitHub-081427?style=flat-square&amp;logo=github&amp;logoColor=white" alt="GitHub"></a>
+  <a href="https://www.linkedin.com/in/jannik-r/"><img src="https://img.shields.io/badge/LinkedIn-0795FF?style=flat-square&amp;logo=linkedin&amp;logoColor=white" alt="LinkedIn"></a>
+  <a href="https://x.com/jannik_reinhard"><img src="https://img.shields.io/badge/X-081427?style=flat-square&amp;logo=x&amp;logoColor=white" alt="X"></a>
+  <a href="https://www.youtube.com/@ModernDevMgmt/featured"><img src="https://img.shields.io/badge/YouTube-0A5FC0?style=flat-square&amp;logo=youtube&amp;logoColor=white" alt="YouTube"></a>
+</p>
+  <p><sub>Open-Source Collection · Python · Practical by design</sub></p>
+</div>
+<!-- jr-brand:end -->
 
-# 🛠️ AgentSkills
+## Overview
 
 **The largest community-driven library of Agent Skills for Claude, Codex, Gemini CLI, Cursor & friends.**
 
 Plug-and-play `SKILL.md` packages — instructions, references, scripts, and examples — that teach AI agents to do real work, from code review to career coaching.
 
-[![Skills](https://img.shields.io/badge/skills-72-f4c542?style=for-the-badge&logo=anthropic)](#-skill-catalog)
-[![Categories](https://img.shields.io/badge/categories-10-8E2DE2?style=for-the-badge)](#-skill-catalog)
-[![GitHub stars](https://img.shields.io/github/stars/JayRHa/AgentSkills?style=for-the-badge&logo=github&color=f4c542)](https://github.com/JayRHa/AgentSkills/stargazers)
-[![License: MIT](https://img.shields.io/badge/License-MIT-28a745?style=for-the-badge)](./LICENSE)
-
-<p>
-  <a href="https://jannikreinhard.com/">Blog</a> ·
-  <a href="https://www.linkedin.com/in/jannik-r/">LinkedIn</a> ·
-  <a href="https://x.com/jannik_reinhard">X</a>
-</p>
 
 `72 Skills` · `10 Categories` · `455+ Files` · `Open Standard` · `Community Maintained`
 
-</div>
-
-## What is this?
 
 This repository is a growing, **production-ready** library of [Agent Skills](https://agentskills.io). Each skill is a self-contained folder with a `SKILL.md` (instructions + when to use it) plus supporting **references, runnable scripts, examples, and templates**. Compatible agents — Claude Code, the Claude apps, Codex, Gemini CLI, Cursor and more — automatically discover a skill from its description and load the full body only when it's relevant, so skills are cheap until used.
 
-> Each skill is a folder right here in the repo root. Browse the [catalog](#-skill-catalog) below — from code review and Terraform to threat modeling, interview prep, budgeting, and trip planning.
-
----
+> Each skill is a folder right here in the repo root. Browse the [catalog](#skill-catalog) below — from code review and Terraform to threat modeling, interview prep, budgeting, and trip planning.
 
 ## How It Works
 
@@ -43,9 +44,7 @@ flowchart LR
     Run --> Result[High-quality output]
 ```
 
----
-
-## Quick Start
+## Quickstart
 
 ### Install a skill into Claude Code
 ```bash
@@ -66,11 +65,9 @@ Then restart your agent. Ask something that matches a skill's description, or in
 
 You can also just copy any skill folder into your own `.claude/skills/` directory.
 
----
+## Skill Catalog
 
-## 📚 Skill Catalog
-
-### 🧑‍💻 Engineering (12)
+### Engineering (12)
 
 | Skill | What it does |
 | --- | --- |
@@ -87,7 +84,7 @@ You can also just copy any skill folder into your own `.claude/skills/` director
 | [`performance-profiler`](./performance-profiler) | Systematically finds and fixes performance bottlenecks by measuring first, profiling hot paths, reducing algorithmic and I/O cost, and verifying gains with before/after benchmarks. |
 | [`error-handling-patterns`](./error-handling-patterns) | Designs robust, production-grade error handling — choosing between result types and exceptions, implementing retries with exponential backoff and jitter, applying timeouts and deadlines, adding circuit breakers, and building graceful degradation and fallbacks. |
 
-### ☁️ DevOps & Cloud (10)
+### DevOps & Cloud (10)
 
 | Skill | What it does |
 | --- | --- |
@@ -102,7 +99,7 @@ You can also just copy any skill folder into your own `.claude/skills/` director
 | [`cron-scheduler`](./cron-scheduler) | Builds, validates, explains, and previews cron expressions across Vixie/POSIX cron, systemd timers, and cloud schedulers, with explicit handling of timezones, DST, the day-of-month/day-of-week OR-logic trap, and overlap/missed-run pitfalls. |
 | [`aws-cost-optimizer`](./aws-cost-optimizer) | Systematically reduces AWS cloud spend by right-sizing over-provisioned compute, finding and eliminating idle or orphaned resources, committing to Savings Plans and Reserved Instances, and enforcing cost-allocation tagging. |
 
-### 📊 Data & ML (8)
+### Data & ML (8)
 
 | Skill | What it does |
 | --- | --- |
@@ -115,7 +112,7 @@ You can also just copy any skill folder into your own `.claude/skills/` director
 | [`prompt-engineer`](./prompt-engineer) | Designs, refines, and systematically evaluates LLM prompts using structure, role framing, few-shot examples, explicit output contracts, and reasoning scaffolds. |
 | [`rag-pipeline-designer`](./rag-pipeline-designer) | Designs end-to-end retrieval-augmented generation (RAG) systems by making principled choices for chunking, embeddings, vector indexing, retrieval, reranking, prompt assembly, and offline evaluation. |
 
-### ✍️ Writing & Communication (12)
+### Writing & Communication (12)
 
 | Skill | What it does |
 | --- | --- |
@@ -132,7 +129,7 @@ You can also just copy any skill folder into your own `.claude/skills/` director
 | [`public-speaking-coach`](./public-speaking-coach) | Coaches a speaker to prepare and deliver a talk, presentation, toast, or pitch — shaping a core message and narrative arc, structuring the talk, writing a strong open and close, tightening delivery, and managing nerves and Q&A. |
 | [`mermaid-diagram-builder`](./mermaid-diagram-builder) | Creates clear, valid, version-controllable diagrams as code using Mermaid — flowcharts, sequence diagrams, ER diagrams, class diagrams, state machines, Gantt charts, C4/architecture diagrams, and more. |
 
-### 📈 Productivity & Business (8)
+### Productivity & Business (8)
 
 | Skill | What it does |
 | --- | --- |
@@ -145,7 +142,7 @@ You can also just copy any skill folder into your own `.claude/skills/` director
 | [`competitive-analysis`](./competitive-analysis) | Analyzes competitors and market position through structured data collection, feature/pricing comparison matrices, SWOT, positioning maps, and actionable strategic recommendations. |
 | [`job-description-writer`](./job-description-writer) | Writes inclusive, accurate, and compelling job descriptions with a clear role summary, outcome-oriented responsibilities, must-have vs. nice-to-have requirements, impact framing, and compensation/logistics. |
 
-### 🔒 Security (6)
+### Security (6)
 
 | Skill | What it does |
 | --- | --- |
@@ -156,7 +153,7 @@ You can also just copy any skill folder into your own `.claude/skills/` director
 | [`vulnerability-triage`](./vulnerability-triage) | Triages and prioritizes security vulnerabilities (CVEs) by combining CVSS base/temporal scores, real-world exploitability (EPSS, KEV, public PoCs), environmental exposure (internet-facing, network reachability, authentication), and business impact (data sensitivity, asset criticality) into a defensible, ranked remediation plan with SLAs. |
 | [`secure-code-review`](./secure-code-review) | Performs a security-focused review of code or a diff, hunting for injection, broken authentication/authorization, insecure crypto, hardcoded secrets, unsafe deserialization, SSRF, path traversal, and missing input validation, with exploit scenarios and concrete fixes ranked by severity. |
 
-### 💼 Career & Job Search (4)
+### Career & Job Search (4)
 
 | Skill | What it does |
 | --- | --- |
@@ -165,7 +162,7 @@ You can also just copy any skill folder into your own `.claude/skills/` director
 | [`interview-prep`](./interview-prep) | Prepares a candidate for a specific job interview — generating likely questions, coaching STAR-method stories, drilling behavioral and role-specific answers, and producing smart questions to ask back. |
 | [`salary-negotiator`](./salary-negotiator) | Coaches a candidate or employee through compensation negotiation — researching market ranges, anchoring, countering an offer, negotiating the full package (base, bonus, equity, signing, benefits), and scripting the conversation. |
 
-### 🎓 Learning (5)
+### Learning (5)
 
 | Skill | What it does |
 | --- | --- |
@@ -175,7 +172,7 @@ You can also just copy any skill folder into your own `.claude/skills/` director
 | [`language-tutor`](./language-tutor) | Acts as a personalized foreign-language tutor — assessing level, running graded conversation practice, teaching vocabulary and grammar in context, correcting errors gently, and building a spaced-repetition study plan toward a concrete goal. |
 | [`book-summarizer`](./book-summarizer) | Distills a book into a clear, faithful summary at the depth the reader wants — from a one-paragraph gist to chapter-by-chapter notes — surfacing the core thesis, key ideas, memorable examples, and actionable takeaways without distortion. |
 
-### 💪 Health & Wellness (3)
+### Health & Wellness (3)
 
 | Skill | What it does |
 | --- | --- |
@@ -183,7 +180,7 @@ You can also just copy any skill folder into your own `.claude/skills/` director
 | [`workout-planner`](./workout-planner) | Builds safe, progressive, personalized workout programs around a person's goal, experience level, available equipment, schedule, and constraints — with weekly splits, exercise selection, sets/reps, progression rules, and deload guidance. |
 | [`habit-builder`](./habit-builder) | Designs a realistic, evidence-based plan to build a new habit or break a bad one — using cue-routine-reward loops, habit stacking, environment design, tiny starting steps, and relapse-proof tracking. |
 
-### 🏡 Home & Lifestyle (4)
+### Home & Lifestyle (4)
 
 | Skill | What it does |
 | --- | --- |
@@ -191,8 +188,6 @@ You can also just copy any skill folder into your own `.claude/skills/` director
 | [`personal-budget-planner`](./personal-budget-planner) | Builds a realistic personal or household budget from income and expenses — choosing a budgeting method (50/30/20, zero-based, envelopes), categorizing spending, setting savings and debt-payoff targets, and producing a monthly plan with an emergency-fund and debt strategy. |
 | [`event-planner`](./event-planner) | Plans events end-to-end — birthdays, weddings, dinner parties, offsites, conferences, fundraisers — with a budget breakdown, guest and venue logistics, a backward-planned timeline, vendor checklist, run-of-show, and contingency plans. |
 | [`gift-advisor`](./gift-advisor) | Recommends thoughtful, personalized gift ideas for any recipient and occasion — by profiling interests, relationship, budget, and occasion, then generating ranked, specific suggestions with reasoning, price tiers, and backup options. |
-
----
 
 ## Anatomy of a Skill
 
@@ -207,8 +202,6 @@ code-reviewer/
 
 See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the full format and how to add your own.
 
----
-
 ## Contributing
 
 We love contributions!
@@ -218,15 +211,24 @@ We love contributions!
 | **Got an idea?** | [Open an issue](https://github.com/JayRHa/AgentSkills/issues/new) describing the skill you'd like to see |
 | **Got a skill?** | Copy [`0-template`](./0-template), fill it in, run `python3 scripts/validate_skills.py`, and open a PR |
 
----
-
-<div align="center">
-
 ### Disclaimer
 
 *This is a community repository. The skills are provided as-is — review them before use.*
 
 **If this library helps you, please give it a :star:**
 
+## License
+
+This project is available under the terms in [LICENSE](LICENSE).
+
+<!-- jr-brand-footer:start -->
+
+---
+
+<div align="center">
+  <p><sub>Built and maintained by <a href="https://jannikreinhard.com/">Jannik Reinhard</a> · Microsoft MVP for Security and AI Platform.</sub></p>
+  <p><a href="https://www.buymeacoffee.com/jannikreinf">Support the open-source work</a></p>
+  <p><strong>Stay healthy, Cheers Jannik</strong></p>
 </div>
 
+<!-- jr-brand-footer:end -->
